@@ -9,12 +9,6 @@ class Store(TenantModel):
     name = models.CharField(max_length=50)
 
 
-class StoreAdmin(TenantModel):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    storeId = models.CharField(max_length=15)
-    store = models.ForeignKey(Store, on_delete=models.CASCADE, default='')
-
-
 class Item(TenantModel):
     store = models.ForeignKey(Store, on_delete=models.CASCADE, default='')
     tenant_id = "store_id"

@@ -18,32 +18,32 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
         Token.objects.create(user=instance)
 
 
-@api_view(['GET'])
-def apiOverview(request):
-    # return JsonResponse("API baser point", safe=False)
-    api_urls = {
-        'test': 'complete',
-    }
-    return Response(api_urls)
+# Test Api
+# @api_view(['GET'])
+# def apiOverview(request):
+#     api_urls = {
+#         'test': 'complete',
+#     }
+#     return Response(api_urls)
 
-
+@permission_classes((IsAuthenticated,))
 @api_view(['GET'])
 def itemsList(request):
     items = Item.objects.all()
     serializer = ItemSerializer(items, many=True)
     return Response(serializer.data)
 
-# @permission_classes((IsAuthenticated,))
+
+@permission_classes((IsAuthenticated,))
 @api_view(['POST'])
 def itemCreate(request):
-    t = current_tenant
-    set_current_tenant(t)
     serializer = ItemSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
     return Response(serializer.data)
 
 
+@permission_classes((IsAuthenticated,))
 @api_view(['POST'])
 def itemUpdate(request, pk):
     item = Item.objects.get(id=pk)
@@ -53,6 +53,7 @@ def itemUpdate(request, pk):
     return Response(serializer.data)
 
 
+@permission_classes((IsAuthenticated,))
 @api_view(['POST'])
 def itemDelete(request, pk):
     item = Item.objects.get(id=pk)
