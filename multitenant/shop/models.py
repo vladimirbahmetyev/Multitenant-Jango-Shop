@@ -4,20 +4,17 @@ from django_multitenant.fields import *
 from django_multitenant.models import *
 
 
-class Store(TenantModel):
-    tenant_id = 'id'
-    name = models.CharField(max_length=50)
+class UserTenant(TenantModel):
+    tenant_id = 'userTenant_id'
+    token = models.TextField()
 
 
 class Item(TenantModel):
-    store = models.ForeignKey(Store, on_delete=models.CASCADE, default='')
-    tenant_id = "store_id"
+    user = models.ForeignKey(UserTenant, on_delete=models.CASCADE, default='')
+    tenant_id = "userTenant_id"
     item_name = models.CharField(max_length=50)
     price = models.IntegerField()
     is_available = models.BooleanField()
-
-    class Meta(object):
-        unique_together = ["id", "store"]
 
     def __str__(self):
         return self.item_name

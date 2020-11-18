@@ -2,8 +2,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .serializers import ItemSerializer
-from .models import Item
-from django_multitenant.utils import set_current_tenant
+from .models import Item, UserTenant
+from django_multitenant.utils import set_current_tenant, get_current_tenant
 from rest_framework.authtoken.models import Token
 from django.dispatch import receiver
 from django.db.models.signals import post_save
@@ -26,15 +26,18 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 #     }
 #     return Response(api_urls)
 
-@permission_classes((IsAuthenticated,))
 @api_view(['GET'])
+@permission_classes((IsAuthenticated,))
 def itemsList(request):
+    tenant_token = request.headers.get("Authorization").split(' ')[-1]
+    tenant = UserTenant.objects.get(token=tenant_token)
+    set_current_tenant(tenant)
     items = Item.objects.all()
     serializer = ItemSerializer(items, many=True)
     return Response(serializer.data)
 
 
-@permission_classes((IsAuthenticated,))
+# @permission_classes((IsAuthenticated,))
 @api_view(['POST'])
 def itemCreate(request):
     serializer = ItemSerializer(data=request.data)
@@ -43,7 +46,7 @@ def itemCreate(request):
     return Response(serializer.data)
 
 
-@permission_classes((IsAuthenticated,))
+# @permission_classes((IsAuthenticated,))
 @api_view(['POST'])
 def itemUpdate(request, pk):
     item = Item.objects.get(id=pk)
@@ -53,7 +56,7 @@ def itemUpdate(request, pk):
     return Response(serializer.data)
 
 
-@permission_classes((IsAuthenticated,))
+# @permission_classes((IsAuthenticated,))
 @api_view(['POST'])
 def itemDelete(request, pk):
     item = Item.objects.get(id=pk)
