@@ -1,16 +1,24 @@
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .serializers import ItemSerializer
 from .models import Item, UserTenant
-from django_multitenant.utils import set_current_tenant, get_current_tenant
+from django_multitenant.utils import set_current_tenant, unset_current_tenant
 from rest_framework.authtoken.models import Token
 from django.dispatch import receiver
+from django.http import JsonResponse
 from django.db.models.signals import post_save
 from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
 
 
 # Create your views here.
+
+class CsrfExemptSessionAuthentication(SessionAuthentication):
+    def enforce_csrf(self, request):
+        return None
+
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
@@ -26,15 +34,23 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 #     }
 #     return Response(api_urls)
 
+@csrf_exempt
 @api_view(['GET'])
 @permission_classes((IsAuthenticated,))
+@authentication_classes((CsrfExemptSessionAuthentication,))
 def itemsList(request):
     tenant_token = request.headers.get("Authorization").split(' ')[-1]
+
     tenant = UserTenant.objects.get(token=tenant_token)
     set_current_tenant(tenant)
     items = Item.objects.all()
     serializer = ItemSerializer(items, many=True)
-    return Response(serializer.data)
+    unset_current_tenant()
+    response = JsonResponse({"data": serializer.data})
+
+    response['Access-Control-Allow-Origin'] = '*'
+    response["Access-Control-Allow-Headers"] = '*'
+    return response
 
 
 # @permission_classes((IsAuthenticated,))
