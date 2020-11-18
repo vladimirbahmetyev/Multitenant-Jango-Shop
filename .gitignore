@@ -1,6 +1,5 @@
 /multitenant/.idea
 /multitenant/multitenant/__pycache__
 /multitenant/shop/__pycache__
-/multitenant/shop/migrations/
 /.idea/
 /venv
