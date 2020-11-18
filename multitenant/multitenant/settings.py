@@ -89,8 +89,8 @@ WSGI_APPLICATION = 'multitenant.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django_multitenant.backends.postgresql',
-        'NAME': 'Multitenant',
-        'PASSWORD': '2402',
+        'NAME': 'mtshop',
+        'PASSWORD': 'qwerty123',
         'HOST': 'localhost',
         'USER': 'postgres',
     }
