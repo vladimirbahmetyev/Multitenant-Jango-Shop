@@ -10,6 +10,7 @@ class UserTenantSerializer(serializers.ModelSerializer):
 
 class ItemSerializer(serializers.ModelSerializer):
     usertenant_id = serializers.IntegerField()
+    usertenant = UserTenantSerializer(read_only=True)
 
     class Meta:
         model = Item

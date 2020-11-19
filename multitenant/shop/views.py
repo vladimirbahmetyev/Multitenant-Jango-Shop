@@ -6,7 +6,6 @@ from .models import Item, UserTenant
 from django_multitenant.utils import set_current_tenant, unset_current_tenant
 from rest_framework.authtoken.models import Token
 from django.dispatch import receiver
-from django.http import JsonResponse
 from django.db.models.signals import post_save
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
@@ -23,7 +22,7 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 @csrf_exempt
 @api_view(['GET'])
 @permission_classes((IsAuthenticated,))
-def itemsList(request):
+def items_list(request):
     tenant_token = request.headers.get("Authorization").split(' ')[-1]
     tenant = UserTenant.objects.get(token=tenant_token)
     set_current_tenant(tenant)
@@ -36,7 +35,7 @@ def itemsList(request):
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes((IsAuthenticated,))
-def itemCreate(request):
+def item_create(request):
     tenant_token = request.headers.get("Authorization").split(' ')[-1]
     tenant = UserTenant.objects.get(token=tenant_token)
     set_current_tenant(tenant)
@@ -47,10 +46,8 @@ def itemCreate(request):
         data["usertenant_id"] = usertenant.data["id"]
         serializer = ItemSerializer(data=data)
         if serializer.is_valid():
-            serializer.create(serializer.data)
             serializer.save()
 
-        print(serializer.errors)
         unset_current_tenant()
         return Response(serializer.data)
 
@@ -58,28 +55,31 @@ def itemCreate(request):
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes((IsAuthenticated,))
-def itemUpdate(request, pk):
+def item_update(request, pk):
     tenant_token = request.headers.get("Authorization").split(' ')[-1]
     tenant = UserTenant.objects.get(token=tenant_token)
     set_current_tenant(tenant)
     item = Item.objects.get(id=pk)
-    serializer = ItemSerializer(instance=item, data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-    unset_current_tenant()
-    return Response(serializer.data)
+    data = request.data
+    usertenant = UserTenantSerializer(tenant, data=data)
+    if usertenant.is_valid():
+        data["usertenant"] = usertenant.data
+        data["usertenant_id"] = usertenant.data["id"]
+        serializer = ItemSerializer(instance=item, data=data)
+        if serializer.is_valid():
+            serializer.save()
+        unset_current_tenant()
+        return Response(serializer.data)
 
 
 @csrf_exempt
-@api_view(['POST'])
+@api_view(['DELETE'])
 @permission_classes((IsAuthenticated,))
-def itemDelete(request, pk):
+def item_delete(request, pk):
     tenant_token = request.headers.get("Authorization").split(' ')[-1]
     tenant = UserTenant.objects.get(token=tenant_token)
     set_current_tenant(tenant)
     item = Item.objects.get(id=pk)
     item.delete()
     unset_current_tenant()
-    items = Item.objects.all()
-    serializer = ItemSerializer(items, many=True)
-    return Response(serializer.data)
+    return Response({"result": True})
