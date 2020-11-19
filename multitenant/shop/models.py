@@ -12,7 +12,7 @@ class UserTenant(TenantModel):
 
 
 class Item(TenantModel):
-    usertenant = models.ForeignKey(UserTenant, on_delete=models.CASCADE, default='')
+    usertenant = models.ForeignKey(UserTenant, on_delete=models.CASCADE, default='', related_name="item")
     tenant_id = "usertenant_id"
     item_name = models.CharField(max_length=50)
     price = models.IntegerField()
