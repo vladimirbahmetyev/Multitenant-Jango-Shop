@@ -12,12 +12,15 @@ class UserTenant(TenantModel):
 
 
 class Item(TenantModel):
-    user = models.ForeignKey(UserTenant, on_delete=models.CASCADE, default='')
-    tenant_id = "id"
+    usertenant = models.ForeignKey(UserTenant, on_delete=models.CASCADE, default='')
+    tenant_id = "usertenant_id"
     item_name = models.CharField(max_length=50)
     price = models.IntegerField()
     is_available = models.BooleanField()
     picture = models.CharField(max_length=500000, default="")
+
+    class Meta(object):
+        unique_together = ["id", "usertenant"]
 #
 #     def __str__(self):
 #         return self.item_name
