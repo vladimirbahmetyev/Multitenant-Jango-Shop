@@ -30,11 +30,7 @@ def itemsList(request):
     items = Item.objects.all()
     serializer = ItemSerializer(items, many=True)
     unset_current_tenant()
-    response = JsonResponse({"data": serializer.data})
-
-    response['Access-Control-Allow-Origin'] = '*'
-    response["Access-Control-Allow-Headers"] = '*'
-    return response
+    return Response(serializer.data)
 
 
 @csrf_exempt
@@ -48,11 +44,7 @@ def itemCreate(request):
     if serializer.is_valid():
         serializer.save()
     unset_current_tenant()
-    response = JsonResponse({"data": serializer.data})
-
-    response['Access-Control-Allow-Origin'] = '*'
-    response["Access-Control-Allow-Headers"] = '*'
-    return response
+    return Response(serializer.data)
 
 
 @csrf_exempt
@@ -67,11 +59,7 @@ def itemUpdate(request, pk):
     if serializer.is_valid():
         serializer.save()
     unset_current_tenant()
-    response = JsonResponse({"data": serializer.data})
-
-    response['Access-Control-Allow-Origin'] = '*'
-    response["Access-Control-Allow-Headers"] = '*'
-    return response
+    return Response(serializer.data)
 
 
 @csrf_exempt
@@ -86,8 +74,4 @@ def itemDelete(request, pk):
     unset_current_tenant()
     items = Item.objects.all()
     serializer = ItemSerializer(items, many=True)
-    response = JsonResponse({"data": serializer.data})
-
-    response['Access-Control-Allow-Origin'] = '*'
-    response["Access-Control-Allow-Headers"] = '*'
-    return response
+    return Response(serializer.data)
