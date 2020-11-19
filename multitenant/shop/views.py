@@ -1,5 +1,4 @@
-from rest_framework.authentication import SessionAuthentication
-from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .serializers import ItemSerializer
@@ -14,11 +13,6 @@ from django.views.decorators.csrf import csrf_exempt
 
 
 # Create your views here.
-
-class CsrfExemptSessionAuthentication(SessionAuthentication):
-    def enforce_csrf(self, request):
-        return None
-
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
@@ -37,7 +31,6 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 @csrf_exempt
 @api_view(['GET'])
 @permission_classes((IsAuthenticated,))
-@authentication_classes((CsrfExemptSessionAuthentication,))
 def itemsList(request):
     tenant_token = request.headers.get("Authorization").split(' ')[-1]
 
