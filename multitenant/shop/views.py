@@ -37,8 +37,9 @@ def itemsList(request):
     return response
 
 
-@permission_classes((IsAuthenticated,))
+@csrf_exempt
 @api_view(['POST'])
+@permission_classes((IsAuthenticated,))
 def itemCreate(request):
     tenant_token = request.headers.get("Authorization").split(' ')[-1]
     tenant = UserTenant.objects.get(token=tenant_token)
@@ -54,8 +55,9 @@ def itemCreate(request):
     return response
 
 
-# @permission_classes((IsAuthenticated,))
+@csrf_exempt
 @api_view(['POST'])
+@permission_classes((IsAuthenticated,))
 def itemUpdate(request, pk):
     tenant_token = request.headers.get("Authorization").split(' ')[-1]
     tenant = UserTenant.objects.get(token=tenant_token)
@@ -72,8 +74,9 @@ def itemUpdate(request, pk):
     return response
 
 
-# @permission_classes((IsAuthenticated,))
+@csrf_exempt
 @api_view(['POST'])
+@permission_classes((IsAuthenticated,))
 def itemDelete(request, pk):
     tenant_token = request.headers.get("Authorization").split(' ')[-1]
     tenant = UserTenant.objects.get(token=tenant_token)
