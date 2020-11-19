@@ -17,6 +17,7 @@ class Item(TenantModel):
     item_name = models.CharField(max_length=50)
     price = models.IntegerField()
     is_available = models.BooleanField()
+    picture = models.CharField(max_length=500000, default="")
 #
 #     def __str__(self):
 #         return self.item_name
