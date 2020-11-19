@@ -20,20 +20,11 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
         Token.objects.create(user=instance)
 
 
-# Test Api
-# @api_view(['GET'])
-# def apiOverview(request):
-#     api_urls = {
-#         'test': 'complete',
-#     }
-#     return Response(api_urls)
-
 @csrf_exempt
 @api_view(['GET'])
 @permission_classes((IsAuthenticated,))
 def itemsList(request):
     tenant_token = request.headers.get("Authorization").split(' ')[-1]
-
     tenant = UserTenant.objects.get(token=tenant_token)
     set_current_tenant(tenant)
     items = Item.objects.all()
@@ -46,28 +37,54 @@ def itemsList(request):
     return response
 
 
-# @permission_classes((IsAuthenticated,))
+@permission_classes((IsAuthenticated,))
 @api_view(['POST'])
 def itemCreate(request):
+    tenant_token = request.headers.get("Authorization").split(' ')[-1]
+    tenant = UserTenant.objects.get(token=tenant_token)
+    set_current_tenant(tenant)
     serializer = ItemSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
-    return Response(serializer.data)
+    unset_current_tenant()
+    response = JsonResponse({"data": serializer.data})
+
+    response['Access-Control-Allow-Origin'] = '*'
+    response["Access-Control-Allow-Headers"] = '*'
+    return response
 
 
 # @permission_classes((IsAuthenticated,))
 @api_view(['POST'])
 def itemUpdate(request, pk):
+    tenant_token = request.headers.get("Authorization").split(' ')[-1]
+    tenant = UserTenant.objects.get(token=tenant_token)
+    set_current_tenant(tenant)
     item = Item.objects.get(id=pk)
     serializer = ItemSerializer(instance=item, data=request.data)
     if serializer.is_valid():
         serializer.save()
-    return Response(serializer.data)
+    unset_current_tenant()
+    response = JsonResponse({"data": serializer.data})
+
+    response['Access-Control-Allow-Origin'] = '*'
+    response["Access-Control-Allow-Headers"] = '*'
+    return response
 
 
 # @permission_classes((IsAuthenticated,))
 @api_view(['POST'])
 def itemDelete(request, pk):
+    tenant_token = request.headers.get("Authorization").split(' ')[-1]
+    tenant = UserTenant.objects.get(token=tenant_token)
+    set_current_tenant(tenant)
     item = Item.objects.get(id=pk)
     item.delete()
-    return Response("Item was successfully deleted")
+    unset_current_tenant()
+    items = Item.objects.all()
+    serializer = ItemSerializer(items, many=True)
+    response = JsonResponse({"data": serializer.data})
+
+    response['Access-Control-Allow-Origin'] = '*'
+    response["Access-Control-Allow-Headers"] = '*'
+    return response
