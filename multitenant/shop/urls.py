@@ -2,6 +2,7 @@ from django.urls import path
 
 from shop import views
 from rest_framework.authtoken.views import obtain_auth_token
+
 urlpatterns = [
     path('products/', views.items_list, name='products'),
     path('products/create/', views.item_create, name="create-item"),
