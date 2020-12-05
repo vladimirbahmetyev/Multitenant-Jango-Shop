@@ -1,6 +1,9 @@
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+from . import serializers
 from .serializers import ItemSerializer, UserTenantSerializer
 from .models import Item, UserTenant
 from django_multitenant.utils import set_current_tenant, unset_current_tenant
@@ -23,6 +26,9 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 @api_view(['GET'])
 @permission_classes((IsAuthenticated,))
 def items_list(request):
+    """
+    Tenant token -- from header
+    """
     tenant_token = request.headers.get("Authorization").split(' ')[-1]
     tenant = UserTenant.objects.get(token=tenant_token)
     set_current_tenant(tenant)
@@ -35,7 +41,12 @@ def items_list(request):
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes((IsAuthenticated,))
+@swagger_auto_schema(request_body=ItemSerializer())
 def item_create(request):
+    """
+    Tenant token -- from header
+    Body -- {name [str], price [int], is_available [boolean], picture [base64 str]}
+    """
     tenant_token = request.headers.get("Authorization").split(' ')[-1]
     tenant = UserTenant.objects.get(token=tenant_token)
     set_current_tenant(tenant)
@@ -56,6 +67,11 @@ def item_create(request):
 @api_view(['POST'])
 @permission_classes((IsAuthenticated,))
 def item_update(request, pk):
+    """
+    Updates product by id
+    Tenant token -- from header
+    Body -- {id [pk], name [str], price [int], is_available [boolean], picture [base64 str]}
+    """
     tenant_token = request.headers.get("Authorization").split(' ')[-1]
     tenant = UserTenant.objects.get(token=tenant_token)
     set_current_tenant(tenant)
@@ -76,6 +92,9 @@ def item_update(request, pk):
 @api_view(['DELETE'])
 @permission_classes((IsAuthenticated,))
 def item_delete(request, pk):
+    """
+    Tenant token -- from header
+    """
     tenant_token = request.headers.get("Authorization").split(' ')[-1]
     tenant = UserTenant.objects.get(token=tenant_token)
     set_current_tenant(tenant)

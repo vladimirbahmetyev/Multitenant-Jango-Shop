@@ -1,5 +1,3 @@
-# from django.db import models
-from django_multitenant.fields import *
 from django_multitenant.models import *
 
 
@@ -21,6 +19,3 @@ class Item(TenantModel):
 
     class Meta(object):
         unique_together = ["id", "usertenant"]
-#
-#     def __str__(self):
-#         return self.item_name
