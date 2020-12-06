@@ -9,13 +9,6 @@ from rest_framework.authtoken.models import Token
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.conf import settings
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
-
-
-class CsrfExemptSessionAuthentication(SessionAuthentication):
-
-    def enforce_csrf(self, request):
-        return
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
@@ -27,7 +20,6 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 class ItemsList(GenericAPIView):
     serializer_class = ItemSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
 
     def get(self, request):
         """Tenant token -- from header"""
@@ -43,7 +35,6 @@ class ItemsList(GenericAPIView):
 class ItemCreate(GenericAPIView):
     serializer_class = ItemSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
 
     def post(self, request):
         """Tenant token -- from header"""
@@ -66,7 +57,6 @@ class ItemCreate(GenericAPIView):
 class ItemUpdate(GenericAPIView):
     serializer_class = ItemSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
 
     def post(self, request, pk):
         """
@@ -95,7 +85,6 @@ class ItemUpdate(GenericAPIView):
 class ItemDelete(GenericAPIView):
     serializer_class = ItemSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
 
     def delete(self, request, pk):
         """Tenant token -- from header"""
