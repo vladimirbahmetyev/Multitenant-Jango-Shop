@@ -1,3 +1,4 @@
+
 """
 Django settings for multitenant project.
 
@@ -10,7 +11,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
-import os
+import os, dj-database-url
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 
@@ -127,16 +128,9 @@ WSGI_APPLICATION = 'multitenant.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django_multitenant.backends.postgresql',
-        'NAME': 'mtshop',
-        'PASSWORD': 'qwerty123',
-        'HOST': 'localhost',
-        'USER': 'postgres',
-    }
-}
-
+db_from_env = dj-database-url.config()
+DATABASE['default'].update(db_from_env)
+DATABASE['default']['ENGINE'] = 'django_multitenant.backends.postgresql',
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
