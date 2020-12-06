@@ -1,1 +1,1 @@
-web: gunicorn multitenant.wsgi --log-file -
+web: gunicorn multitenant.multitenant.wsgi --log-file -
