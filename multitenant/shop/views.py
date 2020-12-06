@@ -1,9 +1,7 @@
-from drf_yasg.utils import swagger_auto_schema
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework import permissions
+from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 
-from . import serializers
 from .serializers import ItemSerializer, UserTenantSerializer
 from .models import Item, UserTenant
 from django_multitenant.utils import set_current_tenant, unset_current_tenant
@@ -11,10 +9,14 @@ from rest_framework.authtoken.models import Token
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.conf import settings
-from django.views.decorators.csrf import csrf_exempt
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 
 
-# Create your views here.
+class CsrfExemptSessionAuthentication(SessionAuthentication):
+
+    def enforce_csrf(self, request):
+        return
+
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
@@ -22,83 +24,88 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
         Token.objects.create(user=instance)
 
 
-@csrf_exempt
-@api_view(['GET'])
-@permission_classes((IsAuthenticated,))
-def items_list(request):
-    """
-    Tenant token -- from header
-    """
-    tenant_token = request.headers.get("Authorization").split(' ')[-1]
-    tenant = UserTenant.objects.get(token=tenant_token)
-    set_current_tenant(tenant)
-    items = Item.objects.all()
-    serializer = ItemSerializer(items, many=True)
-    unset_current_tenant()
-    return Response(serializer.data)
+class ItemsList(GenericAPIView):
+    serializer_class = ItemSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
 
-
-@csrf_exempt
-@api_view(['POST'])
-@permission_classes((IsAuthenticated,))
-@swagger_auto_schema(request_body=ItemSerializer())
-def item_create(request):
-    """
-    Tenant token -- from header
-    Body -- {name [str], price [int], is_available [boolean], picture [base64 str]}
-    """
-    tenant_token = request.headers.get("Authorization").split(' ')[-1]
-    tenant = UserTenant.objects.get(token=tenant_token)
-    set_current_tenant(tenant)
-    data = request.data
-    usertenant = UserTenantSerializer(tenant, data=data)
-    if usertenant.is_valid():
-        data["usertenant"] = usertenant.data
-        data["usertenant_id"] = usertenant.data["id"]
-        serializer = ItemSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-
+    def get(self, request):
+        """Tenant token -- from header"""
+        tenant_token = request.headers.get("Authorization").split(' ')[-1]
+        tenant = UserTenant.objects.get(token=tenant_token)
+        set_current_tenant(tenant)
+        items = Item.objects.all()
+        serializer = ItemSerializer(items, many=True)
         unset_current_tenant()
         return Response(serializer.data)
 
 
-@csrf_exempt
-@api_view(['POST'])
-@permission_classes((IsAuthenticated,))
-def item_update(request, pk):
-    """
-    Updates product by id
-    Tenant token -- from header
-    Body -- {id [pk], name [str], price [int], is_available [boolean], picture [base64 str]}
-    """
-    tenant_token = request.headers.get("Authorization").split(' ')[-1]
-    tenant = UserTenant.objects.get(token=tenant_token)
-    set_current_tenant(tenant)
-    item = Item.objects.get(id=pk)
-    data = request.data
-    usertenant = UserTenantSerializer(tenant, data=data)
-    if usertenant.is_valid():
-        data["usertenant"] = usertenant.data
-        data["usertenant_id"] = usertenant.data["id"]
-        serializer = ItemSerializer(instance=item, data=data)
-        if serializer.is_valid():
-            serializer.save()
+class ItemCreate(GenericAPIView):
+    serializer_class = ItemSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
+
+    def post(self, request):
+        """Tenant token -- from header"""
+        tenant_token = request.headers.get("Authorization").split(' ')[-1]
+        tenant = UserTenant.objects.get(token=tenant_token)
+        set_current_tenant(tenant)
+        data = request.data
+        usertenant = UserTenantSerializer(tenant, data=data)
+        if usertenant.is_valid():
+            data["usertenant"] = usertenant.data
+            data["usertenant_id"] = usertenant.data["id"]
+            serializer = ItemSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+
+            unset_current_tenant()
+            return Response(serializer.data)
+
+
+class ItemUpdate(GenericAPIView):
+    serializer_class = ItemSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
+
+    def post(self, request, pk):
+        """
+        Updates product by id
+        Tenant token -- from header
+        """
+        tenant_token = request.headers.get("Authorization").split(' ')[-1]
+        tenant = UserTenant.objects.get(token=tenant_token)
+        set_current_tenant(tenant)
+        item = Item.objects.get(id=pk)
+        data = request.data
+        usertenant = UserTenantSerializer(tenant, data=data)
+        if usertenant.is_valid():
+            data["usertenant"] = usertenant.data
+            data["usertenant_id"] = usertenant.data["id"]
+            serializer = ItemSerializer(instance=item, data=data)
+            if serializer.is_valid():
+                serializer.save()
+            unset_current_tenant()
+            return Response(serializer.data)
+
+    def get_queryset(self):
+        pass
+
+
+class ItemDelete(GenericAPIView):
+    serializer_class = ItemSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
+
+    def delete(self, request, pk):
+        """Tenant token -- from header"""
+        tenant_token = request.headers.get("Authorization").split(' ')[-1]
+        tenant = UserTenant.objects.get(token=tenant_token)
+        set_current_tenant(tenant)
+        item = Item.objects.get(id=pk)
+        item.delete()
         unset_current_tenant()
-        return Response(serializer.data)
+        return Response({"result": True})
 
-
-@csrf_exempt
-@api_view(['DELETE'])
-@permission_classes((IsAuthenticated,))
-def item_delete(request, pk):
-    """
-    Tenant token -- from header
-    """
-    tenant_token = request.headers.get("Authorization").split(' ')[-1]
-    tenant = UserTenant.objects.get(token=tenant_token)
-    set_current_tenant(tenant)
-    item = Item.objects.get(id=pk)
-    item.delete()
-    unset_current_tenant()
-    return Response({"result": True})
+    def get_queryset(self):
+        pass
