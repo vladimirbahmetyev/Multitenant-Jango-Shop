@@ -130,7 +130,13 @@ WSGI_APPLICATION = 'multitenant.wsgi.application'
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
 db_from_env = dj_database_url.config()
-DATABASES = {}
+DATABASES = {
+    'default': {
+        'ENGINE': 'django_multitenant.backends.postgresql',
+        'HOST': 'localhost',
+        'USER': 'postgres',
+    }
+}
 DATABASES['default'].update(db_from_env)
 DATABASES['default']['ENGINE'] = 'django_multitenant.backends.postgresql',
 
